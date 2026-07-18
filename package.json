@@ -12,7 +12,8 @@
     "dist": "electron-builder --win",
     "postdist": "node scripts/apply-icon.js",
     "zip": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-zip.ps1",
-    "release": "npm run dist && npm run zip"
+    "release": "npm run dist && npm run zip",
+    "ship": "npm run release && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/publish-release.ps1"
   },
   "dependencies": {
     "app-info-parser": "^1.0.3"
