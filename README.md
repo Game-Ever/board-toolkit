@@ -1,54 +1,48 @@
 # Board Toolkit
 
-Herramientas de escritorio para la **Board**: instalar y correr builds de cualquier juego por USB, sacar capturas, subir imágenes y ver logs — sin tocar `adb` a mano.
+A Windows desktop app for working with the **Board** from your PC — install and test
+builds, read logs, take screenshots and video, and more, without touching the command
+line. `adb` is built in, so there's nothing to set up.
 
-Trae `adb` empaquetado adentro: los compañeros **no necesitan instalar nada**. Descomprimen, doble clic y funciona.
+## Download
 
-## Uso
+**[⬇ Download the latest version](https://github.com/Game-Ever/board-toolkit/releases/latest)**
 
-1. Conectar la board por USB (con depuración USB activada).
-2. Abrir `Board Toolkit.exe`.
-3. La primera vez te pide elegir la **carpeta de builds** (donde están los `.apk`).
-4. Elegir un build de la lista → **Instalar** (o Instalar + Lanzar).
+Grab `BoardToolkit-v*.zip` from the release, unzip it, and run **`Board Toolkit.exe`**.
+The app tells you when a newer version is available.
 
-### Funciones
+> **First run:** since the app isn't code-signed, Windows may show
+> *"Windows protected your PC"*. Click **More info → Run anyway**. This is normal for an
+> unsigned internal tool.
 
-**Builds**: instalar, lanzar, reiniciar app, desinstalar, reinstalación limpia (borra datos), y borrar builds de la carpeta (van a la Papelera).
-El package name se lee automáticamente del `.apk`, así que nunca falla por un typo.
+## Getting started
 
-**Capturas e imágenes**: screenshot del device (carpeta configurable), subir imágenes al device (botón o arrastrando, carpeta destino configurable), y abrir el Media Player (`co.harrishill.mediaplayer` por defecto, cambiable desde ⚙).
+1. Plug the Board in over USB, with **USB debugging enabled**. The first time, accept the
+   debugging prompt that appears on the Board's screen.
+2. Open **Board Toolkit**.
+3. Choose the folder where your `.apk` builds are.
+4. Pick a build from the list and hit **Install**.
 
-**Logcat** en vivo con presets: Juego (por PID), Unity (tag `Unity`), Unity errores, Errores (todos, incluye crashes nativos) y Todo. Coloreado por nivel + filtro de texto.
+## What it does
 
-**Idiomas**: español / inglés (banderitas arriba). Por defecto sigue el idioma del sistema (inglés salvo que la PC esté en español).
+- **Builds** — install, launch, restart and uninstall apps on the Board, plus clean
+  reinstall or reset saved data for a fresh start. It reads the version from the `.apk`,
+  shows what's installed on the device, and warns before installing an older version.
+- **Logs** — live logcat with Unity presets (running game / Unity errors / native
+  crashes / all), colour-coded and filterable, and savable to a file.
+- **Media** — take screenshots straight into your PC, record up to 3 min of video (mp4),
+  upload images by drag & drop, and open the Board Media Player to preview mockups on the
+  device.
+- **Wireless** — one click while on USB, then unplug the cable and keep working over
+  Wi-Fi (the PC and the Board must be on the same network).
+- **Bug reports** — one click bundles a screenshot, the full logcat and device info into
+  a `.zip` that's ready to send.
 
-## Desarrollo (solo en la máquina de build)
+## Languages
 
-Requiere Node.js instalado.
+English, Spanish and Portuguese — it follows your system language, and you can switch any
+time with the flags in the top-right corner.
 
-```
-npm install       # instalar dependencias
-npm start         # correr en modo desarrollo
-npm run dist      # empaquetar a dist/win-unpacked/
-npm run zip       # comprimir a dist/BoardToolkit-v<version>.zip
-npm run release   # dist + zip, todo junto
-```
+## Requirements
 
-Para repartir: `npm run release` y mandás el `.zip` de `dist/`.
-
-Si cambia el logo, reemplazá `resources/board_logo.jpg` — el ícono se regenera solo en cada build.
-
-## Estructura
-
-- `main.js` — proceso principal (wrapper de adb, IPC, logcat, screenshots, push).
-- `preload.js` — puente seguro renderer ↔ main.
-- `renderer/` — interfaz (HTML/CSS/JS, i18n).
-- `resources/platform-tools/` — `adb.exe` empaquetado (se copia al build).
-- `scripts/` — generación del ícono, aplicación al exe, y armado del zip.
-
-## Notas
-
-- `adb` se resuelve desde la copia empaquetada; si no está, cae al `adb` del PATH.
-- Los screenshots se guardan en `Imágenes/BoardToolkit/` por defecto.
-- El `.exe` **no está firmado**: la primera vez Windows SmartScreen puede avisar → *Más información → Ejecutar de todas formas*. Se evita firmar a propósito (requiere certificado y rompe el build por los symlinks de winCodeSign).
-- La config de cada usuario vive en `%APPDATA%/board-toolkit/config.json`.
+Windows. That's it — `adb` ships inside, nothing else to install.
