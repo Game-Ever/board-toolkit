@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <title>Board Toolkit</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><img src="board_logo.jpg" alt="Board" /></div>
+        <div class="brand-text">
+          <div class="brand-title">
+            Board Toolkit <span class="app-version" id="appVersion"></span>
+          </div>
+          <div class="brand-sub">by Game Ever</div>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="lang-switch">
+          <button class="flag-btn" id="langEs" data-tip="Español">
+            <svg viewBox="0 0 3 2" preserveAspectRatio="none">
+              <rect width="3" height="2" fill="#74acdf" />
+              <rect width="3" height="0.667" y="0.667" fill="#fff" />
+              <circle cx="1.5" cy="1" r="0.22" fill="#f6b40e" />
+            </svg>
+          </button>
+          <button class="flag-btn" id="langEn" data-tip="English">
+            <svg viewBox="0 0 13 13" preserveAspectRatio="none">
+              <rect width="13" height="13" fill="#b22234" />
+              <rect y="1" width="13" height="1" fill="#fff" />
+              <rect y="3" width="13" height="1" fill="#fff" />
+              <rect y="5" width="13" height="1" fill="#fff" />
+              <rect y="7" width="13" height="1" fill="#fff" />
+              <rect y="9" width="13" height="1" fill="#fff" />
+              <rect y="11" width="13" height="1" fill="#fff" />
+              <rect width="5.2" height="7" fill="#3c3b6e" />
+            </svg>
+          </button>
+          <button class="flag-btn" id="langPt" data-tip="Português">
+            <svg viewBox="0 0 20 14" preserveAspectRatio="none">
+              <clipPath id="br-c"><circle cx="10" cy="7" r="3" /></clipPath>
+              <rect width="20" height="14" fill="#009b3a" />
+              <polygon points="10,1.6 18.4,7 10,12.4 1.6,7" fill="#fedf00" />
+              <circle cx="10" cy="7" r="3" fill="#002776" />
+              <path
+                d="M6.6 8.4 A3.8 3.8 0 0 1 13.2 6.2"
+                clip-path="url(#br-c)"
+                stroke="#fff"
+                stroke-width="0.7"
+                fill="none"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div class="device-picker">
+          <span class="status-dot" id="deviceDot"></span>
+          <select id="deviceSelect"></select>
+          <button class="icon-btn" id="btnWireless">📶</button>
+          <button class="icon-btn" id="refreshDevices" data-i18n-title="refreshTitle">⟳</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- shown only while there's no usable device -->
+    <div class="device-hint hidden" id="deviceHint"></div>
+
+    <main class="layout">
+      <!-- Left: builds -->
+      <section class="panel builds-panel">
+        <div class="panel-head">
+          <h2>Builds</h2>
+          <div class="head-actions">
+            <select class="sort-select" id="sortBy" data-i18n-title="sortTitle">
+              <option value="date-desc" data-i18n="sortDateDesc">Más nuevo primero</option>
+              <option value="date-asc" data-i18n="sortDateAsc">Más viejo primero</option>
+              <option value="name-asc" data-i18n="sortNameAsc">Nombre A→Z</option>
+              <option value="name-desc" data-i18n="sortNameDesc">Nombre Z→A</option>
+              <option value="size-desc" data-i18n="sortSizeDesc">Más grande primero</option>
+            </select>
+            <button class="ghost-btn" id="browseApk" data-i18n="browseApk">Buscar archivo…</button>
+            <button class="icon-btn small" id="rescan" data-i18n-title="rescan">⟳</button>
+          </div>
+        </div>
+
+        <div class="folder-row">
+          <span class="folder-label" id="folderLabel"></span>
+          <button class="ghost-btn small" id="changeFolder" data-i18n="changeFolder">
+            Cambiar carpeta
+          </button>
+        </div>
+
+        <div class="apk-list" id="apkList"></div>
+      </section>
+
+      <!-- Right column: build actions + device tools -->
+      <div class="right-col">
+      <section class="panel action-panel">
+        <div class="panel-head">
+          <h2 data-i18n="selected">Seleccionado</h2>
+        </div>
+
+        <div class="selected-card" id="selectedCard">
+          <div class="selected-empty" id="selectedEmpty" data-i18n="selectedEmpty">
+            Elegí un build de la lista, o arrastrá un .apk acá.
+          </div>
+          <div class="selected-body hidden" id="selectedBody">
+            <img class="apk-icon" id="apkIcon" alt="" />
+            <div class="selected-info">
+              <div class="selected-name" id="selName">—</div>
+              <div class="selected-pkg" id="selPkg">—</div>
+              <div class="selected-meta" id="selMeta">—</div>
+              <div class="selected-installed" id="selInstalled"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="options-row">
+          <label class="switch">
+            <input type="checkbox" id="optLaunch" checked />
+            <span data-i18n="optLaunch">Lanzar al instalar</span>
+          </label>
+          <label class="switch">
+            <input type="checkbox" id="optClean" />
+            <span data-i18n="optClean">Reinstalación limpia (borra datos)</span>
+          </label>
+        </div>
+
+        <div class="actions-grid">
+          <button class="btn primary" id="btnInstall" data-i18n="install" disabled>Instalar</button>
+          <button class="btn" id="btnLaunch" data-i18n="launch" disabled>Lanzar</button>
+          <button class="btn" id="btnRestart" data-i18n="restart" disabled>Reiniciar app</button>
+          <button class="btn" id="btnClearData" data-i18n="resetData" disabled>
+            Resetear datos
+          </button>
+          <button class="btn danger" id="btnUninstall" data-i18n="uninstall" disabled>
+            Desinstalar
+          </button>
+        </div>
+      </section>
+
+      <!-- Device tools: screenshot, upload, media manager -->
+      <section class="panel device-panel">
+        <div class="panel-head">
+          <h2 data-i18n="deviceSection">Multimedia</h2>
+        </div>
+
+        <div class="shots-bar">
+          <button class="btn shot-btn" id="btnScreenshot" disabled>
+            <span class="cam">📷</span><span data-i18n="screenshot">Captura</span>
+          </button>
+          <button class="btn shot-btn rec-btn" id="btnRecord" data-i18n-title="recHint" disabled>
+            <span class="rec-dot"></span><span id="recLabel">Grabar</span>
+          </button>
+          <div class="shots-folder-wrap" id="shotsFolderWrap">
+            <span class="shots-label" data-i18n="shotsTo">Guardar en:</span>
+            <span class="shots-folder" id="shotsFolder"></span>
+          </div>
+          <button class="ghost-btn small" id="changeShotsFolder" data-i18n="changeShort">
+            Cambiar
+          </button>
+          <button class="icon-btn small" id="openShotsFolder" data-i18n-title="openFolder">📂</button>
+        </div>
+
+        <div class="device-tools">
+          <button class="btn" id="btnUpload" disabled>
+            <span class="tool-ico">⬆</span><span data-i18n="uploadImages">Subir imágenes</span>
+          </button>
+          <button class="btn" id="btnMediaMgr" disabled>
+            <span class="tool-ico">🖼</span><span data-i18n="openMediaManager">Media Manager</span>
+          </button>
+          <button class="icon-btn small" id="pickMediaMgr" data-i18n-title="chooseApp">⚙</button>
+        </div>
+      </section>
+      </div>
+    </main>
+
+    <!-- Bottom: tabs -->
+    <section class="console">
+      <div class="tabs">
+        <button class="tab active" data-tab="activity" data-i18n="tabActivity">Actividad</button>
+        <button class="tab" data-tab="logcat">Logcat</button>
+        <div class="tab-spacer"></div>
+        <button class="ghost-btn small always-tool" id="btnBugReport" data-i18n="bugReport" disabled>
+          🐞 Reporte de bug
+        </button>
+        <div class="tab-tools" id="activityTools">
+          <button class="ghost-btn small" id="clearActivity" data-i18n="clear">Limpiar</button>
+        </div>
+        <div class="tab-tools hidden" id="logcatTools">
+          <select class="lc-preset" id="logcatPreset">
+            <option value="game" data-i18n="lcGame">Juego</option>
+            <option value="unity" data-i18n="lcUnity">Unity</option>
+            <option value="unityErrors" data-i18n="lcUnityErr">Unity errores</option>
+            <option value="errors" data-i18n="lcErrors">Errores</option>
+            <option value="all" data-i18n="lcAll">Todo</option>
+          </select>
+          <input class="filter-input" id="logcatFilter" data-i18n-ph="filter" placeholder="Filtrar texto…" />
+          <button class="ghost-btn small" id="logcatToggle" data-i18n="start">Iniciar</button>
+          <button class="ghost-btn small" id="saveLogcat" data-i18n="saveLog">Guardar</button>
+          <button class="ghost-btn small" id="clearLogcat" data-i18n="clear">Limpiar</button>
+        </div>
+      </div>
+      <pre class="console-out" id="activityOut"></pre>
+      <pre class="console-out hidden" id="logcatOut"></pre>
+    </section>
+
+    <!-- Upload modal -->
+    <div class="modal-overlay hidden" id="uploadModal">
+      <div class="modal">
+        <div class="modal-head">
+          <h3 data-i18n="uploadTitle">Subir imágenes al device</h3>
+          <button class="modal-close" id="uploadClose">✕</button>
+        </div>
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-ico">⬆</div>
+          <div><span data-i18n="dropHint">Arrastrá imágenes acá, o</span></div>
+          <button class="ghost-btn" id="pickImages" data-i18n="pickImages">Elegir archivos</button>
+        </div>
+        <div class="file-list" id="fileList"></div>
+        <div class="dest-row">
+          <span class="dest-label" data-i18n="destLabel">Carpeta en el device:</span>
+          <input class="dest-input" id="destInput" spellcheck="false" />
+        </div>
+        <div class="modal-actions">
+          <button class="ghost-btn" id="uploadCancel" data-i18n="cancel">Cancelar</button>
+          <button class="btn primary" id="uploadDo" data-i18n="uploadDo" disabled>Subir</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- App picker modal -->
+    <div class="modal-overlay hidden" id="appModal">
+      <div class="modal">
+        <div class="modal-head">
+          <h3 data-i18n="pickAppTitle">Elegí el Board Media Manager</h3>
+          <button class="modal-close" id="appClose">✕</button>
+        </div>
+        <input class="filter-input wide" id="appFilter" data-i18n-ph="filterApps" placeholder="Filtrar apps…" />
+        <div class="app-list" id="appList"></div>
+      </div>
+    </div>
+
+    <!-- Confirm modal (driven by the main process) -->
+    <div class="modal-overlay hidden" id="confirmModal">
+      <div class="modal confirm-modal">
+        <div class="cf-head">
+          <span class="cf-ico" id="cfIco">⚠️</span>
+          <h3 id="cfTitle"></h3>
+        </div>
+        <div class="cf-message" id="cfMessage"></div>
+        <div class="cf-detail" id="cfDetail"></div>
+        <div class="modal-actions" id="cfButtons"></div>
+      </div>
+    </div>
+
+    <!-- Toasts -->
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,59 @@
+{
+  "name": "board-toolkit",
+  "version": "1.0.2",
+  "description": "Herramientas para la Board: instalar y correr builds, capturas, imágenes y logs, sin tocar adb a mano.",
+  "main": "main.js",
+  "author": "Game Ever",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "buildicon": "node scripts/build-icon.js",
+    "predist": "powershell -NoProfile -Command \"Stop-Process -Name 'Board Toolkit' -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 2000\" && node scripts/build-icon.js",
+    "dist": "electron-builder --win",
+    "postdist": "node scripts/apply-icon.js",
+    "zip": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-zip.ps1",
+    "release": "npm run dist && npm run zip"
+  },
+  "dependencies": {
+    "app-info-parser": "^1.0.3"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "jimp": "^0.22.12",
+    "png-to-ico": "^3.0.2",
+    "rcedit": "^5.0.2"
+  },
+  "build": {
+    "appId": "com.gameever.boardtoolkit",
+    "productName": "Board Toolkit",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/platform-tools",
+        "to": "platform-tools"
+      }
+    ],
+    "extraFiles": [
+      {
+        "from": "README-dist.txt",
+        "to": "README.txt"
+      }
+    ],
+    "win": {
+      "target": [
+        "dir"
+      ],
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
+    }
+  }
+}
