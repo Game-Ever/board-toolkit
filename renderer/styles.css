@@ -196,6 +196,48 @@ input {
   outline: none;
 }
 
+/* ---------- Update banner ---------- */
+.update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 9px 18px;
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--accent-2);
+  color: var(--text);
+  font-size: 12px;
+  flex: none;
+}
+
+.update-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border: none;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.update-btn:hover {
+  filter: brightness(1.15);
+}
+
+.update-dismiss {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+}
+
+.update-dismiss:hover {
+  color: var(--text);
+}
+
 /* ---------- Device hint bar ---------- */
 .device-hint {
   padding: 9px 18px;

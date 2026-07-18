@@ -7,6 +7,8 @@ const I18N = {
     rescan: 'Escanear la carpeta de nuevo',
     changeFolder: 'Cambiar carpeta',
     refreshTitle: 'Actualizar la lista de dispositivos',
+    updateAvailable: (v) => `Hay una versión nueva disponible: v${v}`,
+    updateDownload: 'Descargar',
     sortTitle: 'Ordenar por',
     sortDateDesc: 'Más nuevo primero',
     sortDateAsc: 'Más viejo primero',
@@ -129,6 +131,8 @@ const I18N = {
     rescan: 'Rescan the folder',
     changeFolder: 'Change folder',
     refreshTitle: 'Refresh the device list',
+    updateAvailable: (v) => `A new version is available: v${v}`,
+    updateDownload: 'Download',
     sortTitle: 'Sort by',
     sortDateDesc: 'Newest first',
     sortDateAsc: 'Oldest first',
@@ -250,6 +254,8 @@ const I18N = {
     rescan: 'Reescanear a pasta',
     changeFolder: 'Mudar pasta',
     refreshTitle: 'Atualizar a lista de dispositivos',
+    updateAvailable: (v) => `Há uma versão nova disponível: v${v}`,
+    updateDownload: 'Baixar',
     sortTitle: 'Ordenar por',
     sortDateDesc: 'Mais novo primeiro',
     sortDateAsc: 'Mais antigo primeiro',
@@ -1307,6 +1313,16 @@ async function onPresetChange() {
 // ---------------------------------------------------------------------------
 // Wiring
 // ---------------------------------------------------------------------------
+async function checkForUpdate() {
+  const r = await window.api.checkUpdate()
+  if (!r || !r.available) return
+  $('updateText').textContent = t('updateAvailable', r.latest)
+  $('updateDownload').textContent = t('updateDownload')
+  $('updateDownload').onclick = () => window.api.openExternal(r.url)
+  $('updateDismiss').onclick = () => $('updateBanner').classList.add('hidden')
+  $('updateBanner').classList.remove('hidden')
+}
+
 async function init() {
   initTooltips()
   state.config = await window.api.getConfig()
@@ -1314,6 +1330,7 @@ async function init() {
   applyLang(state.config.lang || 'es', false)
   updateShotsFolder()
   window.api.getVersion().then((v) => ($('appVersion').textContent = 'v' + v))
+  checkForUpdate()
   await loadFolder()
   // no auto-prompt on first run: the empty-state CTA and the pulsing
   // "change folder" button are enough — a picker in your face is obnoxious

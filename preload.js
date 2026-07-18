@@ -3,6 +3,8 @@ const { contextBridge, ipcRenderer, webUtils } = require('electron')
 contextBridge.exposeInMainWorld('api', {
   // config
   getVersion: () => ipcRenderer.invoke('get-version'),
+  checkUpdate: () => ipcRenderer.invoke('check-update'),
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
   getConfig: () => ipcRenderer.invoke('get-config'),
   setConfig: (partial) => ipcRenderer.invoke('set-config', partial),
 

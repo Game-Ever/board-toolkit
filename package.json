@@ -1,6 +1,6 @@
 {
   "name": "board-toolkit",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Herramientas para la Board: instalar y correr builds, capturas, imágenes y logs, sin tocar adb a mano.",
   "main": "main.js",
   "author": "Game Ever",

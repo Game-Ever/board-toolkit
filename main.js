@@ -8,6 +8,9 @@ let mainWindow = null
 let logcatProc = null
 let devicePollTimer = null
 
+// where to look for newer versions (public repo, no auth needed)
+const UPDATE_REPO = 'Game-Ever/board-toolkit'
+
 // screen recording state
 let recordProc = null
 let recordDevicePath = ''
@@ -647,6 +650,33 @@ app.on('window-all-closed', () => {
 // IPC
 // ---------------------------------------------------------------------------
 ipcMain.handle('get-version', () => app.getVersion())
+
+ipcMain.handle('open-external', (e, url) => {
+  if (/^https?:\/\//i.test(url || '')) shell.openExternal(url)
+})
+
+// Asks GitHub for the latest published release and compares it to us.
+// Everything is best-effort: no network / no releases yet -> {available:false}.
+ipcMain.handle('check-update', async () => {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${UPDATE_REPO}/releases/latest`, {
+      headers: { 'User-Agent': 'Board-Toolkit', Accept: 'application/vnd.github+json' },
+    })
+    if (!res.ok) return { available: false }
+    const rel = await res.json()
+    const latest = (rel.tag_name || '').replace(/^v/i, '').trim()
+    if (!latest) return { available: false }
+    const current = app.getVersion()
+    return {
+      available: compareVersionNames(current, latest) === -1, // current is older
+      latest,
+      current,
+      url: rel.html_url || `https://github.com/${UPDATE_REPO}/releases/latest`,
+    }
+  } catch {
+    return { available: false }
+  }
+})
 ipcMain.handle('get-config', () => getConfig())
 ipcMain.handle('set-config', (e, partial) => {
   if (partial && partial.lang) setUiLang(partial.lang)
