@@ -2,7 +2,11 @@
 # Run via `npm run ship` (builds + zips first).
 # Requires: gh authenticated, and the version commit already pushed (the tag
 # points at remote main).
-$ErrorActionPreference = 'Stop'
+#
+# NOTE: no `$ErrorActionPreference = 'Stop'` on purpose. On Windows PowerShell 5.1
+# that turns any git/gh stderr output (e.g. "release not found", which is an
+# EXPECTED result when probing) into a fatal error. We check $LASTEXITCODE instead.
+
 $root = Split-Path -Parent $PSScriptRoot
 $repo = 'Game-Ever/board-toolkit'
 $pkg  = Get-Content (Join-Path $root 'package.json') -Raw | ConvertFrom-Json
@@ -11,30 +15,32 @@ $tag  = "v$ver"
 $zip  = Join-Path $root "dist\BoardToolkit-v$ver.zip"
 
 if (-not (Test-Path $zip)) {
-  Write-Error "zip not found: $zip  (run 'npm run release' first)"
+  Write-Host "ERROR: zip not found: $zip  (run 'npm run release' first)"
   exit 1
 }
 
-# don't clobber an existing release
-gh release view $tag --repo $repo 1>$null 2>$null
+# already published? (exit 0 = it exists)
+gh release view $tag --repo $repo 2>$null | Out-Null
 if ($LASTEXITCODE -eq 0) {
-  Write-Error "release $tag already exists on GitHub - bump the version first"
+  Write-Host "ERROR: release $tag already exists on GitHub - bump the version first"
   exit 1
 }
 
-# make sure the local commit is the one on GitHub (otherwise the tag lands on an old version)
-$localHead = (git rev-parse HEAD).Trim()
-$remote    = git ls-remote 'https://github.com/Game-Ever/board-toolkit.git' main
-$remoteHead = ($remote -split "`t")[0]
+# the local commit must be the one on GitHub main, or the tag lands on an old version
+$localHead  = (git rev-parse HEAD).Trim()
+$remoteHead = ((git ls-remote 'https://github.com/Game-Ever/board-toolkit.git' main) -split "`t")[0]
 if ($localHead -ne $remoteHead) {
-  Write-Warning 'Local commit is not the one on GitHub main - push via Fork first. Aborting.'
+  Write-Host "ERROR: local commit is not the one on GitHub main - push via Fork first"
   exit 1
 }
 
 $notes = "Board Toolkit $tag. Download BoardToolkit-v$ver.zip below, unzip, and run Board Toolkit.exe."
-$asset = "$zip#BoardToolkit-v$ver.zip"
 
-Write-Output "Publishing $tag ..."
-gh release create $tag --repo $repo --target main --title "Board Toolkit $tag" --notes $notes $asset
+Write-Host "Publishing $tag ..."
+gh release create $tag --repo $repo --target main --title "Board Toolkit $tag" --notes $notes "$zip#BoardToolkit-v$ver.zip"
+if ($LASTEXITCODE -ne 0) {
+  Write-Host "ERROR: gh release create failed (exit $LASTEXITCODE)"
+  exit 1
+}
 
-Write-Output "Done: https://github.com/$repo/releases/tag/$tag"
+Write-Host "Done: https://github.com/$repo/releases/tag/$tag"
