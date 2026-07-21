@@ -542,18 +542,25 @@ async function getHomePackage(serial) {
 // Everything we've launched this session, so we can clean up after ourselves.
 const launchedPkgs = new Set()
 
+// Board surfaces the user must be able to return to — never force-stop these.
+// (The Board library isn't registered as the HOME launcher, so it needs its own
+// entry; the registered launcher is com.android.launcher3, already excluded below.)
+const PROTECTED_PKGS = new Set(['co.harrishill.library', 'co.harrishill.mediaplayer'])
+
 // The Board is a dedicated device: leaving a previous Unity game resident eats
-// RAM/GPU and bogs it down. Android won't close it on its own, so we do —
-// but only games (never the launcher), and never the one being launched.
+// RAM/GPU and bogs it down. Android won't close it on its own, so we do — the
+// games we launched AND whatever game is currently in the foreground (covers games
+// opened from the library) — but never the library, launcher, or system apps.
 async function stopOtherApps(serial, keepPkg) {
   const home = await getHomePackage(serial)
   const candidates = new Set(launchedPkgs)
-  const fg = await getForegroundApp(serial) // covers apps opened before we started
+  const fg = await getForegroundApp(serial)
   if (fg && fg.pkg) candidates.add(fg.pkg)
 
   for (const other of candidates) {
     if (!other || other === keepPkg || other === home) continue
     if (other.startsWith('com.android.')) continue // system, not a game
+    if (PROTECTED_PKGS.has(other)) continue // Board library / media player
     emitLog(M('stoppingOther', other))
     await runAdb(['shell', 'am', 'force-stop', other], { serial })
     launchedPkgs.delete(other)
