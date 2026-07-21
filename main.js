@@ -438,7 +438,7 @@ function watchBuildsFolder(folder) {
   }
   if (!folder || !fs.existsSync(folder)) return
   try {
-    folderWatcher = fs.watch(folder, (eventType, filename) => {
+    folderWatcher = fs.watch(folder, { recursive: true }, (eventType, filename) => {
       if (filename && !/\.apk$/i.test(filename)) return
       // builds land in chunks — wait for the writes to settle
       clearTimeout(folderDebounce)
@@ -467,27 +467,44 @@ function startDevicePolling() {
 // ---------------------------------------------------------------------------
 // APK helpers
 // ---------------------------------------------------------------------------
+// Scans the folder AND its subfolders (bounded depth), so users can keep one
+// subfolder per game under a single parent. `subfolder` is the relative folder
+// (forward-slashed, '' when the apk sits directly in the root) — shown as a tag.
 function scanApks(folder) {
   if (!folder || !fs.existsSync(folder)) return []
-  let entries = []
-  try {
-    entries = fs.readdirSync(folder)
-  } catch {
-    return []
-  }
   const apks = []
-  for (const name of entries) {
-    if (!name.toLowerCase().endsWith('.apk')) continue
-    const full = path.join(folder, name)
+  const MAX_DEPTH = 4
+
+  const walk = (dir, depth) => {
+    let entries
     try {
-      const st = fs.statSync(full)
-      if (st.isFile()) {
-        apks.push({ path: full, name, size: st.size, mtime: st.mtimeMs })
-      }
+      entries = fs.readdirSync(dir, { withFileTypes: true })
     } catch {
-      /* ignore */
+      return
+    }
+    for (const ent of entries) {
+      const full = path.join(dir, ent.name)
+      if (ent.isDirectory()) {
+        if (ent.name.startsWith('.') || ent.name === 'node_modules') continue
+        if (depth < MAX_DEPTH) walk(full, depth + 1)
+      } else if (ent.name.toLowerCase().endsWith('.apk')) {
+        try {
+          const st = fs.statSync(full)
+          apks.push({
+            path: full,
+            name: ent.name,
+            size: st.size,
+            mtime: st.mtimeMs,
+            subfolder: path.relative(folder, dir).replace(/\\/g, '/'),
+          })
+        } catch {
+          /* ignore */
+        }
+      }
     }
   }
+
+  walk(folder, 0)
   apks.sort((a, b) => b.mtime - a.mtime)
   return apks
 }

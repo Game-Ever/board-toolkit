@@ -660,8 +660,10 @@ async function chooseBuildsFolder() {
 }
 
 function sortedApks() {
-  // numeric:true so v0.7.9 sorts before v0.7.10
+  // numeric:true so v0.7.9 sorts before v0.7.10; group by subfolder (per-game)
+  // first so builds of the same game stay together when sorting by name
   const byName = (a, b) =>
+    (a.subfolder || '').localeCompare(b.subfolder || '', undefined, { sensitivity: 'base' }) ||
     a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
   const arr = state.apks.slice()
   switch (state.sortBy) {
@@ -707,10 +709,13 @@ function renderApkList() {
     const el = document.createElement('div')
     el.className =
       'apk-item' + (state.selected && state.selected.path === apk.path ? ' selected' : '')
+    const folderTag = apk.subfolder
+      ? `<span class="apk-folder">📁 ${escHtml(apk.subfolder)}</span>`
+      : ''
     el.innerHTML = `
       <span class="dot"></span>
       <div class="meta">
-        <div class="name">${apk.name}</div>
+        <div class="name">${escHtml(apk.name)}${folderTag}</div>
         <div class="sub">${fmtSize(apk.size)} · ${fmtDate(apk.mtime)}</div>
       </div>
       ${apk.path === newestPath ? `<span class="badge">${t('newest')}</span>` : ''}

@@ -397,6 +397,18 @@ input {
   text-overflow: ellipsis;
 }
 
+.apk-folder {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: var(--bg-3);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
 .apk-item .sub {
   font-size: 11px;
   color: var(--muted);
